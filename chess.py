@@ -26,7 +26,7 @@ class Piece:
 
 class Queen(Piece):
     def __init__(self):
-        self.name = "Queen"
+        self.name = "queen"
         self.aliases = ["q"]
         direction = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)]
 
@@ -77,6 +77,7 @@ class Rook(Piece):
 def main():
     q = Queen()
     print(q.scope((3, 3)))
+    print(q.name)
 
     b = Bishop()
     print(b.scope((3, 3)))
@@ -86,6 +87,7 @@ def main():
 
     k = Knight()
     print(k.scope((3, 3)))
+
 
 if __name__ == "__main__":
     main()
