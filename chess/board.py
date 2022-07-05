@@ -9,7 +9,7 @@ class Board:
         if position:
             self.position = position
         else:
-            self.position = [["." for i in range(size)] for j in range(size)]
+            self.position = [["." for _ in range(size)] for _ in range(size)]
 
     def __repr__(self):
         s: str = "\n".join([str(row) for row in self.position])
@@ -54,6 +54,7 @@ class Board:
 
     def solve(self):
         """
+        TODO: Probably some kind of tree structure, gotta see if its fast enough
 
         :return:
         """
