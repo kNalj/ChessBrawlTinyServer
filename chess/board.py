@@ -178,8 +178,8 @@ class Tree:
 
 def main():
     b = Board(
-        size=8,
-        piece=Queen()
+        size=6,
+        piece=Bishop()
     )
 
     start = time.time()

@@ -85,7 +85,7 @@ class Server:
         :param data: Dictionary containing data that needs to be checked
         :return:
         """
-        if not 0 <= int(data["n"]) <= 9:
+        if not 1 <= int(data["n"]) <= 8:
             raise ValueError(f"Board size must be in range: 0-8. Got {data['n']}")
         if not data["chessPiece"].lower() in ["queen", "rook", "bishop", "knight"]:
             raise ValueError(f"chessPiece must be one of: [queen, rook, bishop, knight]. Got {data['chessPiece']}")
