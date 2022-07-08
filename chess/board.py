@@ -20,6 +20,7 @@ class Board:
         """
         self.size: int = size
         self.piece: Piece = piece
+        self.position: List[List[str]]
         if position:
             self.position = position
         else:
@@ -84,9 +85,10 @@ class Board:
 
     def is_square_available(self, square: Tuple) -> bool:
         """
+        Check if the square is attacked by any pieces.
 
-        :param square:
-        :return:
+        :param square: tuple representing the square
+        :return: True if not attacked, else False
         """
         x, y = square
         if self.position[x][y] == ".":
@@ -96,9 +98,10 @@ class Board:
 
     def add_piece(self, piece: Piece, square: Tuple) -> None:
         """
+        Adds a piece to the board, and marks all the fields that this piece is attacking
 
-        :param piece:
-        :param square:
+        :param piece: Which piece to add to the board
+        :param square: To which square to add the piece
         :return:
         """
         if self.is_square_available(square):
@@ -109,6 +112,12 @@ class Board:
                 self.position[x][y] = "X"
 
     def get_number_of_combinations(self) -> int:
+        """
+        Method that calculates number of combinations from current position. Only needs to count the number of available
+        squares from the last piece placed on the board (bcs pieces are placed on the board in order)
+
+        :return:
+        """
         if self.get_number_of_filled_squares() == self.size - 1:
             return self.get_number_of_available_squares_from_last_filled_square()
         else:
@@ -116,9 +125,10 @@ class Board:
 
     def solve(self,  starting_square: Tuple = (0, 0)) -> 'Node':
         """
+        Recursively solve position.
 
-        :param starting_square:
-        :return:
+        :param starting_square: From which square to start searching. Cuts down execution time.
+        :return: Node that holds board and all subsequent boards that can be made from that one.
         """
 
         node = Node(self)

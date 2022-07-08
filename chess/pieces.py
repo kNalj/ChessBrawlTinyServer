@@ -52,10 +52,11 @@ class Knight(Piece):
 
     def scope(self, square: Tuple, boardsize: int) -> List[Tuple]:
         """
+        Knight has a specific scope.
 
-        :param square:
-        :param boardsize:
-        :return:
+        :param square: Square where the piece is placed
+        :param boardsize: Size of the board on which the piece is
+        :return: List of squares this piece is attacking
         """
         scope = []
         x, y = square
