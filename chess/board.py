@@ -1,32 +1,88 @@
+import copy
+import time
 from typing import List, Tuple, Optional
 
-from chess.pieces import Piece, Bishop
+from chess.pieces import Piece, Bishop, Knight, Queen
 
 
 class Board:
-    def __init__(self, size: int, position: List[List[str]] = None):
+    def __init__(self, size: int, piece: Piece, position: List[List[str]] = None) -> None:
+        """
+        Constructor for board class. There are two versions:
+            - when position is not passed
+                Constructrs an empty board of size NxN
+            - when position is passed
+                Constructs a board based on passed position
+
+        :param size: size of the board, both in x and y directions
+        :param piece: which piece will be placed on this board
+        :param position: initial state of the board
+        """
         self.size: int = size
+        self.piece: Piece = piece
         if position:
             self.position = position
         else:
             self.position = [["." for _ in range(size)] for _ in range(size)]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Just a readable version of the position. List of lists where each inner list is printed in a new row.
+
+        :return: string representation of the position
+        """
         s: str = "\n".join([str(row) for row in self.position])
         return "\n" + s + "\n"
 
-    def next_available_square(self) -> Optional[Tuple[int, int]]:
+    def get_number_of_filled_squares(self) -> int:
         """
+        Squares filled by pieces. This is useful because its equal to the depth of the tree.
 
-        :return:
+        :return: Depth of the tree at which this position is
         """
+        depth: int = 0
         for x in range(len(self.position)):
             for y in range(len(self.position[0])):
-                if self.get_square_available((x, y)):
-                    return x, y
-        return None
+                if self.position[x][y] == self.piece.marker:
+                    depth += 1
 
-    def get_square_available(self, square: Tuple):
+        return depth
+
+    def get_number_of_available_squares_from_last_filled_square(self) -> int:
+        """
+        This is number of not visited combinations that are available from this position
+
+        :return: number of unique combinations that can be made from this position
+        """
+        combinations: int = 0
+        for x in range(len(self.position) - 1, -1, -1):
+            for y in range(len(self.position[0]) - 1, -1, -1):
+                if self.position[x][y] == ".":
+                    combinations += 1
+                if self.position[x][y] == self.piece.marker:
+                    return combinations
+
+        return combinations
+
+    def get_all_available_squares(self, starting_square: Tuple[int, int] = (0, 0)) -> List[Tuple[int, int]]:
+        """
+        Returns a list of squares where pieces can be placed without being attacked or attacking any other pieces.
+
+        :param starting_square: From which square to start searching
+        :return:
+        """
+        start_x, start_y = starting_square
+        squares: List[Tuple[int, int]] = []
+        for x in range(start_x, len(self.position)):
+            if x != start_x:
+                start_y = 0
+            for y in range(start_y, len(self.position[0])):
+                if self.is_square_available((x, y)):
+                    squares.append((x, y))
+
+        return squares
+
+    def is_square_available(self, square: Tuple) -> bool:
         """
 
         :param square:
@@ -38,37 +94,94 @@ class Board:
         else:
             return False
 
-    def add_piece(self, piece: Piece, square: Tuple):
+    def add_piece(self, piece: Piece, square: Tuple) -> None:
         """
 
         :param piece:
         :param square:
         :return:
         """
-        if self.get_square_available(square):
+        if self.is_square_available(square):
             x, y = square
             self.position[x][y] = piece.marker
             for square in piece.scope(square, self.size):
                 x, y = square
                 self.position[x][y] = "X"
 
-    def solve(self):
-        """
-        TODO: Probably some kind of tree structure, gotta see if its fast enough
+    def get_number_of_combinations(self) -> int:
+        if self.get_number_of_filled_squares() == self.size - 1:
+            return self.get_number_of_available_squares_from_last_filled_square()
+        else:
+            return 0
 
+    def solve(self,  starting_square: Tuple = (0, 0)) -> 'Node':
+        """
+
+        :param starting_square:
         :return:
         """
-        pass
+
+        node = Node(self)
+        available_squares = self.get_all_available_squares(starting_square=starting_square)
+        solved = self.get_number_of_filled_squares() == self.size - 1
+
+        if available_squares and not solved:
+            for square in available_squares:
+                pos = copy.deepcopy(self.position)
+                b = Board(size=self.size, piece=self.piece, position=pos)
+                b.add_piece(self.piece, square)
+                node.children.append(b.solve(starting_square=square))
+
+        return node
+
+
+class Node:
+    def __init__(self, board: Board):
+        self.board: Board = board
+        self.children: List[Node] = []
+
+    def __repr__(self, depth=0):
+        ret = "\t" * depth + repr(self.board) + "\n"
+        for child in self.children:
+            ret += child.__repr__(depth+1)
+
+        return ret
+
+    def get_combinations(self):
+        sum = 0
+        for child in self.children:
+            sum += child.get_combinations()
+
+        return self.board.get_number_of_combinations() + sum
+
+
+class Tree:
+    def __init__(self, root: Node):
+        self.root = root
+
+    def __repr__(self):
+        print(self.root)
+
+    def get_total(self):
+        return self.root.get_combinations()
 
 
 def main():
     b = Board(
-        size=4
+        size=8,
+        piece=Queen()
     )
 
-    while b.next_available_square():
-        b.add_piece(Bishop(), b.next_available_square())
-        print(b)
+    start = time.time()
+    tree: Tree = Tree(b.solve())
+    stop = time.time()
+
+    print("################")
+    print(tree.root)
+    print("################")
+    print("Execution time: ", stop - start)
+
+    print(tree.get_total())
 
 
 if __name__ == "__main__":

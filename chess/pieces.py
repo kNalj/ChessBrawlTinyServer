@@ -45,7 +45,7 @@ class Bishop(Piece):
 class Knight(Piece):
     def __init__(self):
         name = "knight"
-        marker = "K"
+        marker = "N"
         direction = [(2, 1), (2, -1), (-1, 2), (1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2)]
 
         super().__init__(name, marker, direction)

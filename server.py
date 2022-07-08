@@ -1,4 +1,7 @@
 import logging
+import time
+from chess.board import Board, Tree
+from chess.pieces import Piece, Knight, Bishop, Rook, Queen
 
 from aiohttp import web
 
@@ -24,7 +27,7 @@ class Server:
         app = web.Application()
         app.add_routes(
             [
-                web.get("/", self.parse_request)
+                web.get("/", self.parse_request),
             ]
         )
 
@@ -40,29 +43,64 @@ class Server:
         else:
             logging.log(level=40, msg="Web app is not properly initiated")
 
-    def parse_request(self, request):
+    async def parse_request(self, request):
         """
 
         :param request:
         :return:
         """
-        return web.Response(text="This is a place holder response")
+        data = await request.json()
+        self.validate_data(data)
 
-    def validate_request(self, request):
+        json = self.calculate_possible_solutions(size=data["n"], piece=self.create_piece(name=data["chessPiece"]))
+
+        return web.json_response(json)
+
+    @staticmethod
+    def create_piece(name) -> Piece:
+        name_lower: str = name.lower()
+        if name_lower == "queen":
+            return Queen()
+        elif name_lower == "rook":
+            return Rook()
+        elif name_lower == "bishop":
+            return Bishop()
+        elif name_lower == "knight":
+            return Knight()
+
+    @staticmethod
+    def validate_data(data):
         """
 
-        :param request:
+        :param data:
         :return:
         """
-        pass
+        if not 0 <= int(data["n"]) <= 9:
+            raise ValueError(f"Board size must be in range: 0-8. Got {data['n']}")
+        if not data["chessPiece"].lower() in ["queen", "rook", "bishop", "knight"]:
+            raise ValueError(f"chessPiece must be one of: [queen, rook, bishop, knight]. Got {data['chessPiece']}")
 
-    def calculate_possible_solutions(self, request):
+    @staticmethod
+    def calculate_possible_solutions(size: int, piece: Piece):
         """
 
-        :param request:
+        :param size:
+        :param piece:
         :return:
         """
-        pass
+        b = Board(
+            size=int(size),
+            piece=piece
+        )
+
+        start = time.time()
+        tree: Tree = Tree(b.solve())
+        stop = time.time()
+
+        soulutions_count: int = tree.get_total()
+        print(f"Request for piece: {piece.name}, and a board size of {size} executed in: {stop - start}")
+
+        return {"solutionsCount": f"{soulutions_count}"}
 
 
 def main():
